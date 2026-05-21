@@ -15,7 +15,6 @@ export async function GET(req: NextRequest) {
   try {
     let symbol = ticker.toUpperCase()
     
-    // 한국 주식은 Polygon 미지원 → Yahoo Finance 폴백
     if (market === 'KRX') {
       const yahooSymbol = `${ticker}.KS`
       const url = `https://query2.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=1d&range=1d`
@@ -29,7 +28,6 @@ export async function GET(req: NextRequest) {
     }
 
     if (date) {
-      // 과거 가격: Polygon 사용
       const targetDate = new Date(date)
       const dateStr = targetDate.toISOString().split('T')[0]
       const url = `https://api.polygon.io/v1/open-close/${symbol}/${dateStr}?adjusted=true&apiKey=${apiKey}`
@@ -40,12 +38,11 @@ export async function GET(req: NextRequest) {
       }
       return NextResponse.json({ error: 'price not found' }, { status: 404 })
     } else {
-      // 현재가: Polygon 사용
-      const url = `https://api.polygon.io/v2/last/trade/${symbol}?apiKey=${apiKey}`
+      const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${apiKey}`
       const res = await fetch(url)
       const data = await res.json()
-      if (data.results?.p) {
-        return NextResponse.json({ ticker: symbol, price: data.results.p })
+      if (data.results?.[0]?.c) {
+        return NextResponse.json({ ticker: symbol, price: data.results[0].c })
       }
       return NextResponse.json({ error: 'price not found' }, { status: 404 })
     }
