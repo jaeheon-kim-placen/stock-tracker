@@ -18,13 +18,14 @@ export async function POST(req: NextRequest) {
 
     const msgMatch = line.match(/\[이시온\]\s*\[(오전|오후)\s*(\d{1,2}:\d{2})\]\s*(.*)/)
     if (msgMatch) {
-      const ampm = msgMatch[2]
-      const time = msgMatch[3]
-      let message = (msgMatch[4] || '').trim()
-
+      const ampm = msgMatch[1]
+      const time = msgMatch[2]
+      let message = (msgMatch[3] || '').trim()
+      console.log('message값:', JSON.stringify(message), 'length:', message.length)
       while (i + 1 < lines.length) {
         const nextLine = lines[i + 1]
         if (nextLine.match(/^\[/) || nextLine.match(/[-]+\s*\d{4}년/)) break
+        if (nextLine.match(/\d{4}년 \d{1,2}월 \d{1,2}일/)) break
         message += ' ' + nextLine.trim()
         i++
       }
@@ -170,7 +171,6 @@ ${filteredText}`
       clean = clean.substring(0, lastBrace + 1) + ']'
     }
     const orders = JSON.parse(clean)
-    // market 값 보정 (혹시 모를 잘못된 값 방지)
     const sanitized = orders.map((o: any) => ({
       ...o,
       market: ['NASDAQ', 'NYSE', 'KRX'].includes(o.market) ? o.market : 'NASDAQ'
