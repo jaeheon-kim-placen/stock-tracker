@@ -43,7 +43,6 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     fetchProfiles()
@@ -51,22 +50,26 @@ export default function AdminPage() {
   }, [])
 
   const fetchProfiles = async () => {
+    const supabase = createClient()
     const { data } = await supabase.from('profiles').select('*')
     if (data) setProfiles(data)
   }
 
   const fetchPersons = async () => {
+    const supabase = createClient()
     const { data } = await supabase.from('persons').select('*')
     if (data) setPersons(data)
   }
 
   const approveUser = async (id: string, approve: boolean) => {
+    const supabase = createClient()
     await supabase.from('profiles').update({ is_approved: approve }).eq('id', id)
     fetchProfiles()
   }
 
   const addPerson = async () => {
     if (!newPersonName) return
+    const supabase = createClient()
     await supabase.from('persons').insert({ name: newPersonName, description: newPersonDesc })
     setNewPersonName('')
     setNewPersonDesc('')
@@ -74,6 +77,7 @@ export default function AdminPage() {
   }
 
   const deletePerson = async (id: number) => {
+    const supabase = createClient()
     await supabase.from('persons').delete().eq('id', id)
     fetchPersons()
   }
@@ -101,6 +105,7 @@ export default function AdminPage() {
 
   const saveManualOrder = async () => {
     setSaving(true)
+    const supabase = createClient()
     const { error } = await supabase.from('orders').insert({
       person_name: manualInput.person_name,
       stock_code: manualInput.stock_code,
@@ -143,36 +148,35 @@ export default function AdminPage() {
     setParsing(false)
   }
 
-const saveAllParsed = async () => {
-  setSaving(true)
-  try {
-    // market 값 보정
-    const sanitized = parseResult.map(o => ({
-      ...o,
-      market: ['NASDAQ', 'NYSE', 'KRX'].includes(o.market) ? o.market : 'NASDAQ'
-    }))
-
-    const chunkSize = 10
-    let totalSaved = 0
-    for (let i = 0; i < sanitized.length; i += chunkSize) {
-      const chunk = sanitized.slice(i, i + chunkSize)
-      const { error } = await supabase.from('orders').insert(chunk)
-      if (error) {
-        setMessage('❌ 저장 실패: ' + error.message)
-        setSaving(false)
-        return
+  const saveAllParsed = async () => {
+    setSaving(true)
+    const supabase = createClient()
+    try {
+      const sanitized = parseResult.map(o => ({
+        ...o,
+        market: ['NASDAQ', 'NYSE', 'KRX'].includes(o.market) ? o.market : 'NASDAQ'
+      }))
+      const chunkSize = 10
+      let totalSaved = 0
+      for (let i = 0; i < sanitized.length; i += chunkSize) {
+        const chunk = sanitized.slice(i, i + chunkSize)
+        const { error } = await supabase.from('orders').insert(chunk)
+        if (error) {
+          setMessage('❌ 저장 실패: ' + error.message)
+          setSaving(false)
+          return
+        }
+        totalSaved += chunk.length
       }
-      totalSaved += chunk.length
+      setMessage(`✅ ${totalSaved}개 저장 완료!`)
+      setParseResult([])
+      setKakaoText('')
+    } catch (e) {
+      setMessage('❌ 저장 실패')
     }
-    setMessage(`✅ ${totalSaved}개 저장 완료!`)
-    setParseResult([])
-    setKakaoText('')
-  } catch (e) {
-    setMessage('❌ 저장 실패')
+    setSaving(false)
+    setTimeout(() => setMessage(''), 3000)
   }
-  setSaving(false)
-  setTimeout(() => setMessage(''), 3000)
-}
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -207,7 +211,6 @@ const saveAllParsed = async () => {
           <div className="bg-gray-800 rounded-lg p-3 mb-4 text-sm text-center">{message}</div>
         )}
 
-        {/* 수동 입력 */}
         {tab === 'input' && (
           <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 space-y-4">
             <h2 className="font-semibold text-lg mb-4">오더 수동 입력</h2>
@@ -328,7 +331,6 @@ const saveAllParsed = async () => {
           </div>
         )}
 
-        {/* 카카오톡 업로드 */}
         {tab === 'upload' && (
           <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 space-y-4">
             <h2 className="font-semibold text-lg mb-2">카카오톡 대화 내역 업로드</h2>
@@ -374,7 +376,6 @@ const saveAllParsed = async () => {
           </div>
         )}
 
-        {/* 인물 관리 */}
         {tab === 'persons' && (
           <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 space-y-4">
             <h2 className="font-semibold text-lg mb-4">모니터링 인물 관리</h2>
@@ -417,7 +418,6 @@ const saveAllParsed = async () => {
           </div>
         )}
 
-        {/* 회원 승인 */}
         {tab === 'users' && (
           <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 space-y-4">
             <h2 className="font-semibold text-lg mb-4">회원 승인 관리</h2>
