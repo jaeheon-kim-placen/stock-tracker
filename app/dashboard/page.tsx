@@ -74,7 +74,6 @@ export default function DashboardPage() {
   const [saving, setSaving] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     checkAuth()
@@ -111,6 +110,7 @@ export default function DashboardPage() {
   }
 
   const checkAuth = async () => {
+    const supabase = createClient()  // ← 여기 추가
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { router.push('/login'); return }
     setUserId(session.user.id)
@@ -120,17 +120,20 @@ export default function DashboardPage() {
   }
 
   const fetchOrders = async () => {
+    const supabase = createClient()  // ← 여기 추가
     const { data } = await supabase.from('orders').select('*').order('messaged_at', { ascending: false })
     if (data) { setOrders(data); fetchCurrentPrices(data); fetchHistoricalPrices(data) }
     setLoading(false)
   }
 
   const fetchPortfolio = async (uid: string) => {
+    const supabase = createClient()  // ← 여기 추가
     const { data } = await supabase.from('portfolios').select('*').eq('user_id', uid).order('messaged_at', { ascending: false })
     if (data) setPortfolio(data)
   }
 
   const fetchHiddenOrders = async (uid: string) => {
+    const supabase = createClient()  // ← 여기 추가
     const { data } = await supabase.from('hidden_orders').select('order_id').eq('user_id', uid)
     if (data) setHiddenOrderIds(new Set(data.map(h => h.order_id)))
   }
@@ -163,18 +166,21 @@ export default function DashboardPage() {
   }
 
   const hideOrder = async (orderId: number) => {
+    const supabase = createClient()  // ← 여기 추가
     if (!userId) return
     await supabase.from('hidden_orders').insert({ user_id: userId, order_id: orderId })
     setHiddenOrderIds(prev => new Set([...prev, orderId]))
   }
 
   const unhideOrder = async (orderId: number) => {
+    const supabase = createClient()  // ← 여기 추가
     if (!userId) return
     await supabase.from('hidden_orders').delete().eq('user_id', userId).eq('order_id', orderId)
     setHiddenOrderIds(prev => { const next = new Set(prev); next.delete(orderId); return next })
   }
 
   const hideSelected = async () => {
+    const supabase = createClient()  // ← 여기 추가
     if (!userId || selectedIds.size === 0) return
     await Promise.all([...selectedIds].map(id =>
       supabase.from('hidden_orders').upsert({ user_id: userId, order_id: id })
@@ -184,6 +190,7 @@ export default function DashboardPage() {
   }
 
   const hideAll = async () => {
+    const supabase = createClient()  // ← 여기 추가
     if (!userId) return
     const visibleIds = visibleOrders.filter(o => !hiddenOrderIds.has(o.id)).map(o => o.id)
     await Promise.all(visibleIds.map(id =>
@@ -298,6 +305,7 @@ export default function DashboardPage() {
   }
 
   const saveToPortfolio = async () => {
+    const supabase = createClient()  // ← 여기 추가
     if (!modal || !userId) return
     setSaving(true)
     const amountUSD = myAmount ? (amountCurrency === 'USD' ? parseFloat(myAmount) : parseFloat(myAmount) / exchangeRate) : null
@@ -320,6 +328,7 @@ export default function DashboardPage() {
   }
 
   const removeFromPortfolio = async (orderId: number) => {
+    const supabase = createClient()  // ← 여기 추가
     if (!userId) return
     await supabase.from('portfolios').delete().eq('order_id', orderId).eq('user_id', userId)
     fetchPortfolio(userId)
@@ -348,7 +357,11 @@ export default function DashboardPage() {
   const formatKRW = (val: number) => `₩${Math.round(val).toLocaleString()}`
   const formatWithKRW = (usd: number) => `${formatUSD(usd)} (≈ ${formatKRW(usd * exchangeRate)})`
 
-  const handleLogout = async () => { await supabase.auth.signOut(); router.push('/login') }
+  const handleLogout = async () => { 
+  const supabase = createClient()
+  await supabase.auth.signOut()
+  router.push('/login') 
+}
 
   const visibleOrders = orders.filter(o => {
     const matchFilter = filter === 'ALL' ? true : o.action === filter
