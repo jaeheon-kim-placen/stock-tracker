@@ -47,4 +47,20 @@ export async function GET(req: NextRequest) {
     let price = null
 
     if (date) {
-      const closes = data?.chart?.result?.[0]?.indicators?.quot
+      const closes = data?.chart?.result?.[0]?.indicators?.quote?.[0]?.close
+      if (closes && closes.length > 0) {
+        price = closes.find((c: number) => c !== null)
+      }
+    } else {
+      price = data?.chart?.result?.[0]?.meta?.regularMarketPrice
+    }
+
+    if (!price) {
+      return NextResponse.json({ error: 'price not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({ ticker: symbol, price })
+  } catch (e) {
+    return NextResponse.json({ error: 'fetch failed' }, { status: 500 })
+  }
+}
