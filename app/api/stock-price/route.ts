@@ -10,56 +10,45 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'ticker required' }, { status: 400 })
   }
 
+  const apiKey = process.env.POLYGON_API_KEY
+
   try {
-    let symbol = ticker
+    let symbol = ticker.toUpperCase()
+    
+    // 한국 주식은 Polygon 미지원 → Yahoo Finance 폴백
     if (market === 'KRX') {
-      symbol = `${ticker}.KS`
-    }
-
-    let url = ''
-
-    if (date) {
-      const targetDate = new Date(date)
-      const period1 = Math.floor(targetDate.getTime() / 1000)
-      const period2 = period1 + 86400
-      url = `https://query2.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&period1=${period1}&period2=${period2}`
-    } else {
-      url = `https://query2.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`
-    }
-
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'application/json',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Origin': 'https://finance.yahoo.com',
-        'Referer': 'https://finance.yahoo.com',
-      },
-      next: { revalidate: 60 }
-    })
-
-    if (!res.ok) {
-      return NextResponse.json({ error: `yahoo responded ${res.status}` }, { status: 404 })
-    }
-
-    const data = await res.json()
-
-    let price = null
-
-    if (date) {
-      const closes = data?.chart?.result?.[0]?.indicators?.quote?.[0]?.close
-      if (closes && closes.length > 0) {
-        price = closes.find((c: number) => c !== null)
-      }
-    } else {
-      price = data?.chart?.result?.[0]?.meta?.regularMarketPrice
-    }
-
-    if (!price) {
+      const yahooSymbol = `${ticker}.KS`
+      const url = `https://query2.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?interval=1d&range=1d`
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0' }
+      })
+      const data = await res.json()
+      const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice
+      if (price) return NextResponse.json({ ticker: yahooSymbol, price })
       return NextResponse.json({ error: 'price not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ ticker: symbol, price })
+    if (date) {
+      // 과거 가격: Polygon 사용
+      const targetDate = new Date(date)
+      const dateStr = targetDate.toISOString().split('T')[0]
+      const url = `https://api.polygon.io/v1/open-close/${symbol}/${dateStr}?adjusted=true&apiKey=${apiKey}`
+      const res = await fetch(url)
+      const data = await res.json()
+      if (data.close) {
+        return NextResponse.json({ ticker: symbol, price: data.close })
+      }
+      return NextResponse.json({ error: 'price not found' }, { status: 404 })
+    } else {
+      // 현재가: Polygon 사용
+      const url = `https://api.polygon.io/v2/last/trade/${symbol}?apiKey=${apiKey}`
+      const res = await fetch(url)
+      const data = await res.json()
+      if (data.results?.p) {
+        return NextResponse.json({ ticker: symbol, price: data.results.p })
+      }
+      return NextResponse.json({ error: 'price not found' }, { status: 404 })
+    }
   } catch (e) {
     return NextResponse.json({ error: 'fetch failed' }, { status: 500 })
   }
