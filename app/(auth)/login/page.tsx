@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic'
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -26,7 +25,7 @@ export default function LoginPage() {
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-      setError('?�메???�는 비�?번호가 ?�바르�? ?�습?�다.')
+      setError('이메일 또는 비밀번호가 올바르지 않습니다.')
     } else {
       router.push('/dashboard')
     }
@@ -36,8 +35,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
       <div className="bg-gray-900 rounded-2xl p-8 w-full max-w-md border border-gray-800">
-        <h1 className="text-2xl font-bold text-white mb-2">?�� Stock Tracker</h1>
-        <p className="text-gray-400 mb-8">로그??/p>
+        <h1 className="text-2xl font-bold text-white mb-2">📈 Stock Tracker</h1>
+        <p className="text-gray-400 mb-8">로그인</p>
 
         {error && (
           <div className="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-3 mb-4 text-sm">
@@ -47,7 +46,7 @@ export default function LoginPage() {
 
         <div className="space-y-4">
           <div>
-            <label className="text-gray-400 text-sm mb-1 block">?�메??/label>
+            <label className="text-gray-400 text-sm mb-1 block">이메일</label>
             <input
               type="email"
               value={email}
@@ -57,14 +56,14 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="text-gray-400 text-sm mb-1 block">비�?번호</label>
+            <label className="text-gray-400 text-sm mb-1 block">비밀번호</label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleLogin()}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
-              placeholder="?�••••••�?
+              placeholder="••••••••"
             />
           </div>
           <button
@@ -72,14 +71,14 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-900 text-white font-semibold rounded-lg py-3 transition-colors"
           >
-            {loading ? '로그??�?..' : '로그??}
+            {loading ? '로그인 중...' : '로그인'}
           </button>
         </div>
 
         <p className="text-gray-500 text-sm text-center mt-6">
-          계정???�으?��???{' '}
+          계정이 없으신가요?{' '}
           <Link href="/register" className="text-blue-400 hover:underline">
-            ?�원가???�청
+            회원가입 신청
           </Link>
         </p>
       </div>
