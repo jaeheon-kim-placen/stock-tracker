@@ -37,14 +37,15 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ ticker: symbol, price: data.close })
       }
       return NextResponse.json({ error: 'price not found' }, { status: 404 })
-    } else {
+} else {
       const url = `https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${apiKey}`
       const res = await fetch(url)
       const data = await res.json()
+      console.log('polygon response:', JSON.stringify(data).substring(0, 200))
       if (data.results?.[0]?.c) {
         return NextResponse.json({ ticker: symbol, price: data.results[0].c })
       }
-      return NextResponse.json({ error: 'price not found' }, { status: 404 })
+      return NextResponse.json({ error: 'price not found', debug: data }, { status: 404 })
     }
   } catch (e) {
     return NextResponse.json({ error: 'fetch failed' }, { status: 500 })
