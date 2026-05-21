@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -345,8 +346,8 @@ export default function DashboardPage() {
   }
 
   const formatUSD = (val: number) => `$${val.toLocaleString(undefined, {maximumFractionDigits: 2})}`
-  const formatKRW = (val: number) => `₩${Math.round(val).toLocaleString()}`
-  const formatWithKRW = (usd: number) => `${formatUSD(usd)} (≈ ${formatKRW(usd * exchangeRate)})`
+  const formatKRW = (val: number) => `??{Math.round(val).toLocaleString()}`
+  const formatWithKRW = (usd: number) => `${formatUSD(usd)} (??${formatKRW(usd * exchangeRate)})`
 
   const handleLogout = async () => { await supabase.auth.signOut(); router.push('/login') }
 
@@ -363,20 +364,20 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">📈 Stock Tracker</h1>
+        <h1 className="text-xl font-bold">?�� Stock Tracker</h1>
         <div className="flex gap-3">
           <button onClick={() => router.push('/admin')} className="text-gray-400 hover:text-white text-sm">관리자</button>
-          <button onClick={handleLogout} className="text-gray-400 hover:text-white text-sm">로그아웃</button>
+          <button onClick={handleLogout} className="text-gray-400 hover:text-white text-sm">로그?�웃</button>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto p-6">
         <div className="flex gap-2 mb-6">
           <button onClick={() => setTab('feed')} className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'feed' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
-            📋 오더 피드
+            ?�� ?�더 ?�드
           </button>
           <button onClick={() => setTab('portfolio')} className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'portfolio' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
-            💼 내 포트폴리오 {holdings.length > 0 && <span className="ml-1 bg-blue-500 text-white text-xs px-1.5 rounded-full">{holdings.length}</span>}
+            ?�� ???�트?�리??{holdings.length > 0 && <span className="ml-1 bg-blue-500 text-white text-xs px-1.5 rounded-full">{holdings.length}</span>}
           </button>
         </div>
 
@@ -384,7 +385,7 @@ export default function DashboardPage() {
           <>
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-                <p className="text-gray-400 text-sm">전체 오더</p>
+                <p className="text-gray-400 text-sm">?�체 ?�더</p>
                 <p className="text-2xl font-bold mt-1">{orders.length}</p>
               </div>
               <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
@@ -407,7 +408,7 @@ export default function DashboardPage() {
               </div>
               {hiddenOrderIds.size > 0 && (
                 <button onClick={() => setShowHidden(!showHidden)} className="text-gray-400 hover:text-white text-xs px-3 py-1.5 bg-gray-800 rounded-lg">
-                  {showHidden ? '목록 접기' : `지운 항목 보기 (${hiddenOrderIds.size})`}
+                  {showHidden ? '목록 ?�기' : `지????�� 보기 (${hiddenOrderIds.size})`}
                 </button>
               )}
             </div>
@@ -420,22 +421,22 @@ export default function DashboardPage() {
                 className="w-4 h-4 accent-blue-500 cursor-pointer"
               />
               <span className="text-gray-400 text-sm">
-                {selectedIds.size > 0 ? `${selectedIds.size}개 선택됨` : '전체 선택'}
+                {selectedIds.size > 0 ? `${selectedIds.size}�??�택?? : '?�체 ?�택'}
               </span>
               <div className="flex gap-2 ml-auto">
                 {selectedIds.size > 0 && (
                   <button onClick={hideSelected} className="text-xs px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg">
-                    ✕ 선택 지우기 ({selectedIds.size})
+                    ???�택 지?�기 ({selectedIds.size})
                   </button>
                 )}
                 <button onClick={hideAll} className="text-xs px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg">
-                  ✕ 전체 지우기
+                  ???�체 지?�기
                 </button>
               </div>
             </div>
 
             {loading ? (
-              <div className="text-center text-gray-500 py-20">불러오는 중...</div>
+              <div className="text-center text-gray-500 py-20">불러?�는 �?..</div>
             ) : (
               <div className="space-y-3">
                 {visibleOrders.map(order => {
@@ -478,22 +479,22 @@ export default function DashboardPage() {
                               <p className="text-gray-400 text-xs">{formatWithKRW(profit.currentPrice)}</p>
                             </div>
                           ) : (
-                            <p className="text-gray-600 text-xs">가격 조회 중...</p>
+                            <p className="text-gray-600 text-xs">가�?조회 �?..</p>
                           )}
                           {inPortfolio ? (
                             <button onClick={() => removeFromPortfolio(order.id)} className="bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs px-3 py-1.5 rounded-lg">
-                              ✓ 담음
+                              ???�음
                             </button>
                           ) : (
                             <button onClick={() => openBuyModal(order)} className={`text-xs px-3 py-1.5 rounded-lg ${order.action === 'BUY' ? 'bg-green-800 hover:bg-green-700 text-green-200' : 'bg-red-900 hover:bg-red-800 text-red-200'}`}>
-                              + 내 거래 추가
+                              + ??거래 추�?
                             </button>
                           )}
                           <button
                             onClick={() => isHidden ? unhideOrder(order.id) : hideOrder(order.id)}
                             className={`text-xs px-3 py-1.5 rounded-lg ${isHidden ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-800 text-gray-500 hover:bg-gray-700 hover:text-gray-300'}`}
                           >
-                            {isHidden ? '↩ 되돌리기' : '✕ 지우기'}
+                            {isHidden ? '???�돌리기' : '??지?�기'}
                           </button>
                         </div>
                       </div>
@@ -501,12 +502,12 @@ export default function DashboardPage() {
                       <div className="mt-3 pt-3 border-t border-gray-800 grid grid-cols-2 gap-2 text-xs">
                         {profit?.orderPrice && (
                           <p className="text-gray-400">
-                            오더 당시 가격: <span className="text-yellow-400 font-medium">{formatWithKRW(profit.orderPrice)}</span>
-                            {profit.isHistorical && <span className="text-gray-600 ml-1">(당일 종가)</span>}
+                            ?�더 ?�시 가�? <span className="text-yellow-400 font-medium">{formatWithKRW(profit.orderPrice)}</span>
+                            {profit.isHistorical && <span className="text-gray-600 ml-1">(?�일 종�?)</span>}
                           </p>
                         )}
                         {order.quantity && (
-                          <p className="text-gray-400">수량: <span className="text-white font-medium">{order.quantity}</span></p>
+                          <p className="text-gray-400">?�량: <span className="text-white font-medium">{order.quantity}</span></p>
                         )}
                         {order.message_original && (
                           <p className="text-gray-500 italic col-span-2">"{order.message_original}"</p>
@@ -524,10 +525,10 @@ export default function DashboardPage() {
           <div>
             {totalStats && (
               <div className="bg-gray-900 rounded-xl p-5 border border-gray-700 mb-6">
-                <p className="text-gray-400 text-sm mb-3">📊 전체 포트폴리오 합산</p>
+                <p className="text-gray-400 text-sm mb-3">?�� ?�체 ?�트?�리???�산</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-gray-500 text-xs mb-1">달러 기준 수익률</p>
+                    <p className="text-gray-500 text-xs mb-1">?�러 기�? ?�익�?/p>
                     <p className={`text-2xl font-bold ${totalStats.rateUSD >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {totalStats.rateUSD >= 0 ? '+' : ''}{totalStats.rateUSD.toFixed(2)}%
                     </p>
@@ -536,7 +537,7 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-xs mb-1">원화 기준 수익률 (환차익 포함)</p>
+                    <p className="text-gray-500 text-xs mb-1">?�화 기�? ?�익�?(?�차???�함)</p>
                     <p className={`text-2xl font-bold ${totalStats.rateKRW >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {totalStats.rateKRW >= 0 ? '+' : ''}{totalStats.rateKRW.toFixed(2)}%
                     </p>
@@ -546,18 +547,18 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="mt-3 pt-3 border-t border-gray-800 grid grid-cols-2 gap-2 text-xs text-gray-500">
-                  <p>투자원금: {formatUSD(totalStats.totalInvestUSD)} / {formatKRW(totalStats.totalInvestKRW)}</p>
-                  <p>현재가치: {formatUSD(totalStats.totalCurrentUSD)} / {formatKRW(totalStats.totalCurrentKRW)}</p>
-                  <p className="col-span-2">현재 환율: 1 USD = {formatKRW(exchangeRate)}</p>
+                  <p>?�자?�금: {formatUSD(totalStats.totalInvestUSD)} / {formatKRW(totalStats.totalInvestKRW)}</p>
+                  <p>?�재가�? {formatUSD(totalStats.totalCurrentUSD)} / {formatKRW(totalStats.totalCurrentKRW)}</p>
+                  <p className="col-span-2">?�재 ?�율: 1 USD = {formatKRW(exchangeRate)}</p>
                 </div>
               </div>
             )}
 
             {holdings.length === 0 ? (
               <div className="text-center text-gray-500 py-20">
-                <p className="text-4xl mb-3">💼</p>
-                <p>보유 종목이 없어요</p>
-                <p className="text-sm mt-2">오더 피드에서 "+ 내 거래 추가" 버튼을 눌러보세요</p>
+                <p className="text-4xl mb-3">?��</p>
+                <p>보유 종목???�어??/p>
+                <p className="text-sm mt-2">?�더 ?�드?�서 "+ ??거래 추�?" 버튼???�러보세??/p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -593,7 +594,7 @@ export default function DashboardPage() {
                             </div>
                           )}
                           <button onClick={() => openAddBuyModal(holding)} className="bg-green-800 hover:bg-green-700 text-green-200 text-xs px-3 py-1.5 rounded-lg">
-                            추가 매수
+                            추�? 매수
                           </button>
                           <button onClick={() => openSellModal(holding)} className="bg-red-900 hover:bg-red-800 text-red-200 text-xs px-3 py-1.5 rounded-lg">
                             매도 처리
@@ -603,15 +604,15 @@ export default function DashboardPage() {
 
                       <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
                         <div className="bg-gray-800 rounded-lg p-3">
-                          <p className="text-gray-400 text-xs mb-1">보유 수량</p>
-                          <p className="font-medium">{holding.total_quantity.toLocaleString(undefined, {maximumFractionDigits: 4})} 주</p>
+                          <p className="text-gray-400 text-xs mb-1">보유 ?�량</p>
+                          <p className="font-medium">{holding.total_quantity.toLocaleString(undefined, {maximumFractionDigits: 4})} �?/p>
                         </div>
                         <div className="bg-gray-800 rounded-lg p-3">
-                          <p className="text-gray-400 text-xs mb-1">평균 단가</p>
+                          <p className="text-gray-400 text-xs mb-1">?�균 ?��?</p>
                           <p className="font-medium text-sm">{holding.avg_price ? formatWithKRW(holding.avg_price) : '-'}</p>
                         </div>
                         <div className="bg-gray-800 rounded-lg p-3">
-                          <p className="text-gray-400 text-xs mb-1">투자원금</p>
+                          <p className="text-gray-400 text-xs mb-1">?�자?�금</p>
                           <p className="font-medium text-sm">{holding.total_amount_usd ? formatUSD(holding.total_amount_usd) : '-'}</p>
                           <p className="text-gray-500 text-xs">{holding.total_amount_krw ? formatKRW(holding.total_amount_krw) : ''}</p>
                         </div>
@@ -620,13 +621,13 @@ export default function DashboardPage() {
                       {profit && (
                         <div className="mt-3 grid grid-cols-2 gap-2">
                           <div className="bg-gray-800 rounded-lg p-3 text-sm">
-                            <p className="text-gray-400 text-xs mb-1">달러 평가손익</p>
+                            <p className="text-gray-400 text-xs mb-1">?�러 ?��??�익</p>
                             <p className={`font-bold ${isUSDProfit ? 'text-green-400' : 'text-red-400'}`}>
                               {isUSDProfit ? '+' : ''}{formatUSD(profit.profitUSD)}
                             </p>
                           </div>
                           <div className="bg-gray-800 rounded-lg p-3 text-sm">
-                            <p className="text-gray-400 text-xs mb-1">원화 평가손익 (환차익포함)</p>
+                            <p className="text-gray-400 text-xs mb-1">?�화 ?��??�익 (?�차?�포??</p>
                             <p className={`font-bold ${isKRWProfit ? 'text-green-400' : 'text-red-400'}`}>
                               {isKRWProfit ? '+' : ''}{formatKRW(profit.profitKRW)}
                             </p>
@@ -646,7 +647,7 @@ export default function DashboardPage() {
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 rounded-2xl p-6 w-full max-w-md border border-gray-700">
             <h3 className="font-bold text-lg mb-1">
-              {modal.mode === 'buy' ? (modal.order ? '내 거래 추가' : '추가 매수') : '매도 처리'}
+              {modal.mode === 'buy' ? (modal.order ? '??거래 추�?' : '추�? 매수') : '매도 처리'}
             </h3>
             <p className="text-gray-400 text-sm mb-4">
               <span className={`font-bold ${modal.mode === 'buy' ? 'text-green-400' : 'text-red-400'}`}>
@@ -658,12 +659,12 @@ export default function DashboardPage() {
 
             {modal.historicalPrice && (
               <p className="text-xs text-gray-500 mb-3 bg-gray-800 rounded-lg px-3 py-2">
-                당일 종가: <span className="text-yellow-400">{formatWithKRW(modal.historicalPrice)}</span>
+                ?�일 종�?: <span className="text-yellow-400">{formatWithKRW(modal.historicalPrice)}</span>
               </p>
             )}
 
-            <p className="text-xs text-gray-500 mb-1">현재 환율: <span className="text-gray-300">1 USD = {formatKRW(exchangeRate)}</span></p>
-            <p className="text-xs text-gray-500 mb-3">두 항목만 입력하면 나머지가 자동 계산돼요</p>
+            <p className="text-xs text-gray-500 mb-1">?�재 ?�율: <span className="text-gray-300">1 USD = {formatKRW(exchangeRate)}</span></p>
+            <p className="text-xs text-gray-500 mb-3">????���??�력?�면 ?�머지가 ?�동 계산?�요</p>
 
             <div className="space-y-3">
               <div>
@@ -673,18 +674,18 @@ export default function DashboardPage() {
                   value={myPrice}
                   onChange={e => { setLastChanged('price'); setMyPrice(e.target.value) }}
                   className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
-                  placeholder={modal.historicalPrice ? modal.historicalPrice.toString() : "직접 입력"}
+                  placeholder={modal.historicalPrice ? modal.historicalPrice.toString() : "직접 ?�력"}
                 />
-                {myPrice && <p className="text-xs text-gray-500 mt-1">≈ {formatKRW(parseFloat(myPrice) * exchangeRate)}</p>}
+                {myPrice && <p className="text-xs text-gray-500 mt-1">??{formatKRW(parseFloat(myPrice) * exchangeRate)}</p>}
               </div>
               <div>
-                <label className="text-gray-400 text-sm mb-1 block">수량 (주)</label>
+                <label className="text-gray-400 text-sm mb-1 block">?�량 (�?</label>
                 <input
                   type="number"
                   value={myQuantity}
                   onChange={e => { setLastChanged('qty'); setMyQuantity(e.target.value) }}
                   className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
-                  placeholder="예: 10"
+                  placeholder="?? 10"
                 />
               </div>
               <div>
@@ -700,11 +701,11 @@ export default function DashboardPage() {
                   value={myAmount}
                   onChange={e => { setLastChanged('amount'); setMyAmount(e.target.value) }}
                   className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
-                  placeholder={amountCurrency === 'USD' ? "예: 4192.63" : "예: 5785800"}
+                  placeholder={amountCurrency === 'USD' ? "?? 4192.63" : "?? 5785800"}
                 />
                 {myAmount && (
                   <p className="text-xs text-gray-500 mt-1">
-                    {amountCurrency === 'USD' ? `≈ ${formatKRW(parseFloat(myAmount) * exchangeRate)}` : `≈ $${(parseFloat(myAmount) / exchangeRate).toFixed(2)}`}
+                    {amountCurrency === 'USD' ? `??${formatKRW(parseFloat(myAmount) * exchangeRate)}` : `??$${(parseFloat(myAmount) / exchangeRate).toFixed(2)}`}
                   </p>
                 )}
               </div>
@@ -717,7 +718,7 @@ export default function DashboardPage() {
                 disabled={saving}
                 className={`flex-1 ${modal.mode === 'buy' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-700 hover:bg-red-600'} disabled:opacity-50 text-white font-semibold rounded-lg py-2.5 text-sm`}
               >
-                {saving ? '저장 중...' : modal.mode === 'buy' ? (modal.order ? '추가하기' : '매수 추가') : '매도 처리'}
+                {saving ? '?�??�?..' : modal.mode === 'buy' ? (modal.order ? '추�??�기' : '매수 추�?') : '매도 처리'}
               </button>
             </div>
           </div>
