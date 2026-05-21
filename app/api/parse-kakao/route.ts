@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
 
-    const dateMatch = line.match(/[-]+\s*(\d{4}년 \d{1,2}월 \d{1,2}일)/)
+    const dateMatch = line.match(/(?:[-]+\s*)?(\d{4}년 \d{1,2}월 \d{1,2}일)/)
     if (dateMatch) {
       currentDate = dateMatch[1]
       continue
