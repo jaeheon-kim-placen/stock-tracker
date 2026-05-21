@@ -9,10 +9,9 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState('')
   const [ready, setReady] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
-    // URL hash에서 access_token 추출해서 세션 설정
+    const supabase = createClient()
     const hash = window.location.hash
     const params = new URLSearchParams(hash.replace('#', ''))
     const accessToken = params.get('access_token')
@@ -40,6 +39,7 @@ export default function ResetPasswordPage() {
       setMessage('비밀번호는 6자 이상이어야 해요.')
       return
     }
+    const supabase = createClient()
     const { error } = await supabase.auth.updateUser({ password })
     if (error) {
       setMessage('오류: ' + error.message)
