@@ -141,27 +141,29 @@ export default function DashboardPage() {
   const fetchCurrentPrices = async (orders: Order[]) => {
     const uniqueTickers = [...new Set(orders.map(o => o.stock_code).filter(Boolean))]
     const newPrices: {[key: string]: number} = {}
-    await Promise.all(uniqueTickers.map(async (ticker) => {
+    for (const ticker of uniqueTickers) {
       const order = orders.find(o => o.stock_code === ticker)
       try {
         const res = await fetch(`/api/stock-price?ticker=${ticker}&market=${order?.market}`)
         const data = await res.json()
         if (data.price) newPrices[ticker] = data.price
       } catch (e) {}
-    }))
+      await new Promise(resolve => setTimeout(resolve, 300))
+    }
     setPrices(newPrices)
   }
 
-  const fetchHistoricalPrices = async (orders: Order[]) => {
+const fetchHistoricalPrices = async (orders: Order[]) => {
     const targets = orders.filter(o => !o.price_at_order && o.stock_code && o.messaged_at).slice(0, 50)
     const newHistoricalPrices: {[key: number]: number} = {}
-    await Promise.all(targets.map(async (order) => {
+    for (const order of targets) {
       try {
         const res = await fetch(`/api/stock-price?ticker=${order.stock_code}&market=${order.market}&date=${order.messaged_at}`)
         const data = await res.json()
         if (data.price) newHistoricalPrices[order.id] = data.price
       } catch (e) {}
-    }))
+      await new Promise(resolve => setTimeout(resolve, 300))
+    }
     setHistoricalPrices(newHistoricalPrices)
   }
 
