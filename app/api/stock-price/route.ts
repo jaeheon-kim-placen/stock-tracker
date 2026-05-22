@@ -38,31 +38,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'price not found' }, { status: 404 })
     }
 
-    // 현재가: Polygon 먼저 시도
+    // 현재가: Polygon
     const polygonRes = await fetch(`https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${polygonKey}`)
     const polygonData = await polygonRes.json()
     if (polygonData.results?.[0]?.c) {
       return NextResponse.json({ ticker, price: polygonData.results[0].c })
-    }
-
-    // Polygon 실패시 stooq 폴백 (5초 타임아웃)
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 5000)
-    try {
-      const stooqRes = await fetch(`https://stooq.com/q/l/?s=${ticker.toLowerCase()}.us&f=sd2t2ohlcv&h&e=csv`, {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        signal: controller.signal
-      })
-      clearTimeout(timeout)
-      const text = await stooqRes.text()
-      const lines = text.trim().split('\n')
-      if (lines.length >= 2) {
-        const values = lines[1].split(',')
-        const price = parseFloat(values[6])
-        if (price) return NextResponse.json({ ticker, price })
-      }
-    } catch (e) {
-      clearTimeout(timeout)
     }
 
     return NextResponse.json({ error: 'price not found' }, { status: 404 })
