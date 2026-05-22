@@ -141,30 +141,42 @@ export default function DashboardPage() {
   const fetchCurrentPrices = async (orders: Order[]) => {
     const uniqueTickers = [...new Set(orders.map(o => o.stock_code).filter(Boolean))]
     const newPrices: {[key: string]: number} = {}
-    for (const ticker of uniqueTickers) {
-      const order = orders.find(o => o.stock_code === ticker)
-      try {
-        const res = await fetch(`/api/stock-price?ticker=${ticker}&market=${order?.market}`)
-        const data = await res.json()
-        if (data.price) newPrices[ticker] = data.price
-      } catch (e) {}
-      await new Promise(resolve => setTimeout(resolve, 300))
+    const chunkSize = 5
+    for (let i = 0; i < uniqueTickers.length; i += chunkSize) {
+      const chunk = uniqueTickers.slice(i, i + chunkSize)
+      await Promise.all(chunk.map(async (ticker) => {
+        const order = orders.find(o => o.stock_code === ticker)
+        try {
+          const res = await fetch(`/api/stock-price?ticker=${ticker}&market=${order?.market}`)
+          const data = await res.json()
+          if (data.price) newPrices[ticker] = data.price
+        } catch (e) {}
+      }))
+      setPrices({...newPrices})
+      if (i + chunkSize < uniqueTickers.length) {
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
     }
-    setPrices(newPrices)
   }
 
 const fetchHistoricalPrices = async (orders: Order[]) => {
     const targets = orders.filter(o => !o.price_at_order && o.stock_code && o.messaged_at).slice(0, 50)
     const newHistoricalPrices: {[key: number]: number} = {}
-    for (const order of targets) {
-      try {
-        const res = await fetch(`/api/stock-price?ticker=${order.stock_code}&market=${order.market}&date=${order.messaged_at}`)
-        const data = await res.json()
-        if (data.price) newHistoricalPrices[order.id] = data.price
-      } catch (e) {}
-      await new Promise(resolve => setTimeout(resolve, 300))
+    const chunkSize = 5
+    for (let i = 0; i < targets.length; i += chunkSize) {
+      const chunk = targets.slice(i, i + chunkSize)
+      await Promise.all(chunk.map(async (order) => {
+        try {
+          const res = await fetch(`/api/stock-price?ticker=${order.stock_code}&market=${order.market}&date=${order.messaged_at}`)
+          const data = await res.json()
+          if (data.price) newHistoricalPrices[order.id] = data.price
+        } catch (e) {}
+      }))
+      setHistoricalPrices({...newHistoricalPrices})
+      if (i + chunkSize < targets.length) {
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
     }
-    setHistoricalPrices(newHistoricalPrices)
   }
 
   const hideOrder = async (orderId: number) => {
