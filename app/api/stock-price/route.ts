@@ -11,11 +11,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'ticker required' }, { status: 400 })
   }
 
-  const polygonKey = process.env.POLYGON_API_KEY
-
   try {
-    const symbol = ticker.toUpperCase()
-
     // 한국 주식: 네이버 금융
     if (market === 'KRX') {
       const res = await fetch(`https://finance.naver.com/item/main.naver?code=${ticker}`, {
@@ -29,24 +25,50 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'price not found' }, { status: 404 })
     }
 
-    // 과거 가격: Polygon
-    if (date) {
-      const dateStr = new Date(date).toISOString().split('T')[0]
-      const res = await fetch(`https://api.polygon.io/v1/open-close/${symbol}/${dateStr}?adjusted=true&apiKey=${polygonKey}`)
-      const data = await res.json()
-      if (data.close) return NextResponse.json({ ticker, price: data.close })
-      return NextResponse.json({ error: 'price not found' }, { status: 404 })
-    }
+    const symbol = ticker.toUpperCase()
 
-    // 현재가: Polygon
-    const polygonRes = await fetch(`https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${polygonKey}`)
-    const polygonData = await polygonRes.json()
-    if (polygonData.results?.[0]?.c) {
-      return NextResponse.json({ ticker, price: polygonData.results[0].c })
+    // Yahoo Finance crumb 방식
+    // 1. 먼저 crumb 가져오기
+    const crumbRes = await fetch('https://query1.finance.yahoo.com/v1/test/getcrumb', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': '*/*',
+        'Cookie': 'GUCS=AQABCAFn; B=abc123'
+      }
+    })
+    const crumb = await crumbRes.text()
+
+    if (date) {
+      const targetDate = new Date(date)
+      const period1 = Math.floor(targetDate.getTime() / 1000)
+      const period2 = period1 + 86400
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&period1=${period1}&period2=${period2}&crumb=${crumb}`
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Cookie': 'GUCS=AQABCAFn; B=abc123'
+        }
+      })
+      const data = await res.json()
+      const closes = data?.chart?.result?.[0]?.indicators?.quote?.[0]?.close
+      if (closes?.length > 0) {
+        const price = closes.find((c: number) => c !== null)
+        if (price) return NextResponse.json({ ticker, price })
+      }
+    } else {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d&crumb=${crumb}`
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Cookie': 'GUCS=AQABCAFn; B=abc123'
+        }
+      })
+      const data = await res.json()
+      const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice
+      if (price) return NextResponse.json({ ticker, price })
     }
 
     return NextResponse.json({ error: 'price not found' }, { status: 404 })
-
   } catch (e) {
     return NextResponse.json({ error: 'fetch failed' }, { status: 500 })
   }
